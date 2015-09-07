@@ -111,10 +111,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DiskItem.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Globals.cs" />
+    <Compile Include="SyncMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLite.cs" />
     <Compile Include="SQLiteAsync.cs" />
+    <Compile Include="SyncList.cs" />
     <Compile Include="Workspace.cs" />
   </ItemGroup>
   <ItemGroup>

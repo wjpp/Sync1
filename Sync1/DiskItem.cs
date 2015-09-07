@@ -1,9 +1,11 @@
 ﻿using System;
+using SQLite;
 
 namespace Sync1
 {
-    public class DiskItem
+    public class DiskItem 
     {
+        [PrimaryKey]
         public int Id { get; set; }
         public DateTime Created { get; set; }
         public DateTime Updated { get; set; }
@@ -13,5 +15,9 @@ namespace Sync1
         public int FolderId { get; set; }
         public string Action { get; set; }
         public int WorkspaceId { get; set; }
+        public Boolean Folder { get; set; }
+        public string Path { get; set; }
     }
 }
+
+
