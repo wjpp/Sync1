@@ -12,7 +12,9 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 
-namespace Sync1
+using Glasscubes.Drive.Model;
+
+namespace Glasscubes.Drive
 {
     class SyncMain
     {

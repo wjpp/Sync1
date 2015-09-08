@@ -1,7 +1,7 @@
 ﻿using System;
 using SQLite;
 
-namespace Sync1
+namespace Glasscubes.Drive.Model
 {
     public class DiskItem 
     {

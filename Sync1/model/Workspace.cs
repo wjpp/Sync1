@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using SQLite;
 
-namespace Sync1
+namespace Glasscubes.Drive.Model
 {
     class Workspace
     {

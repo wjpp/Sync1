@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sync1
+namespace Glasscubes.Drive.Model
 {
     class SyncList
     {

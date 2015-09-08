@@ -110,24 +110,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DiskItem.cs" />
-    <Compile Include="Globals.cs" />
+    <Compile Include="model\DiskItem.cs" />
+    <Compile Include="model\Globals.cs" />
     <Compile Include="SyncMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SQLite.cs" />
-    <Compile Include="SQLiteAsync.cs" />
-    <Compile Include="SyncList.cs" />
-    <Compile Include="Workspace.cs" />
+    <Compile Include="SQLite\SQLite.cs" />
+    <Compile Include="SQLite\SQLiteAsync.cs" />
+    <Compile Include="model\SyncList.cs" />
+    <Compile Include="model\Workspace.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="sqlite3.def">
+    <None Include="SQLite\sqlite3.def">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="sqlite3.dll">
+    <Content Include="SQLite\sqlite3.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
