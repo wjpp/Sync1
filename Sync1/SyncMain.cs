@@ -36,7 +36,13 @@ namespace Sync1
             client.BaseUrl = new Uri(server);
             
             DbConnect(dbName);
-            var global = db.Find<Globals>(1);
+            Globals global = null;
+            try {
+                global = db.Find<Globals>(1);
+            }
+            catch (SQLiteException e)
+            {
+            }
             if (global == null)
             {
                 Init();
@@ -76,21 +82,41 @@ namespace Sync1
                             case "ADD":
                                 NewFileAdded(i);
                                 break;
-                            case "DELETED":
+                            case "DELETE":
                                 DeleteDiskItem(i);
                                 break;
                             case "UPDATED":
-                               // db.Update(i);
-                               // DownLoadFile(i);
+                                UpdateDiskItem(i);
                                 break;
-                            case "RENAMED":
-                        
+                            case "RENAME":
+                                DiskItemRenamed(i);
                                 break;
                         }
                     }
                 }
 
             }
+        }
+
+        private void DiskItemRenamed(DiskItem i)
+        {
+            try {
+                DiskItem orig = db.Find<DiskItem>(i.Id);
+                string root = GetRootPath(orig);
+                File.Move(Path.Combine(root,orig.FileName), Path.Combine(root,i.FileName));
+                db.Update(i);
+            }
+            catch (SQLiteException e)
+            {
+                //TODO
+            }
+        }
+
+        private void UpdateDiskItem(DiskItem i)
+        {
+            DiskItem original = db.Find<DiskItem>(i.Id);
+            DeleteDiskItem(original);
+            NewFileAdded(i);
         }
 
         private void NewFileAdded(DiskItem i)
@@ -201,11 +227,35 @@ namespace Sync1
         private void DownLoadFile(DiskItem f)
         {
             var path = GetRootPath(f);
+            var fullpath = Path.Combine(path, f.FileName);
+
+            // conflict?
+            if (File.Exists(fullpath))
+            {
+                bool conflict = true;
+                int count = 1;
+                while (conflict)
+                {
+                    string name = Path.GetFileNameWithoutExtension(f.FileName);
+                    name = name + "(" + count + ")" + Path.GetExtension(f.FileName);
+                    if (File.Exists(Path.Combine(path, name)))
+                    {
+                        count++;
+                    } else
+                    {
+                        fullpath = Path.Combine(path, name);
+                        conflict = false;
+                        f.FileName = name;
+                        db.Update(f); // save new name
+                    }
+                }
+            }
+
 
             using (var client = new WebClient())
             {
                 string url = server + "rest/sync/get?key=" + key + "&apiId=" + apiId + "&docId=" + f.Id;
-                client.DownloadFile(url, Path.Combine(path, f.FileName));
+                client.DownloadFile(url, fullpath);
             }
         }
 
