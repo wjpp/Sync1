@@ -131,10 +131,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DownloadMonitor.cs" />
+    <Compile Include="GCActionConsumer.cs" />
     <Compile Include="Model\DiskItem.cs" />
+    <Compile Include="Model\FileMeta.cs" />
     <Compile Include="Model\GCAction.cs" />
     <Compile Include="Model\Globals.cs" />
-    <Compile Include="Monitor.cs" />
+    <Compile Include="DiskMonitor.cs" />
     <Compile Include="SyncMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLite\SQLite.cs" />
@@ -147,6 +149,7 @@
     <Compile Include="UI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Util\ConnectsToGC.cs" />
     <Compile Include="Util\DBHelper.cs" />
     <Compile Include="Util\FileWatcherHelper.cs" />
     <Compile Include="Util\MyFileSystemWatcher.cs">

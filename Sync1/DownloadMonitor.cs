@@ -14,16 +14,14 @@ using SQLite;
 
 using Glasscubes.Drive.Model;
 using Glasscubes.Drive.UI;
+using Glasscubes.Drive.Util;
 
 namespace Glasscubes.Drive
 {
-    class DownloadMonitor
+    class DownloadMonitor : ConnectsToGC
     {
 
-        private RestClient client = new RestClient();
-        //glasscubes://auth-callback=3271f319-911b-4217-b696-897517643535&accountId=54036&apiId=222&accountName=wp2
-        const string key = "3271f319-911b-4217-b696-897517643535";
-        const string apiId = "222";
+        
         public string rootDir { get; set; } 
         const string server = "http://home.glasscubesdev.com:8080/";
        
@@ -311,11 +309,7 @@ namespace Glasscubes.Drive
 
         }
 
-        protected void SetUpRequest(RestRequest request)
-        {
-            request.AddParameter("apiId", apiId);
-            request.AddParameter("key", key);
-        }
+        
 
         protected List<DiskItem> GetWorkspaceItems(int workspaceId)
         {

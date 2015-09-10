@@ -10,7 +10,7 @@ using Glasscubes.Drive.Model;
 
 namespace Glasscubes.Drive
 {
-    class Monitor
+    class DiskMonitor
     {
         SQLiteConnection db;
         public bool paused
@@ -18,7 +18,7 @@ namespace Glasscubes.Drive
             get; set;
         }
 
-        public Monitor(string path, SQLiteConnection dbIn)
+        public DiskMonitor(string path, SQLiteConnection dbIn)
         {
             this.db = dbIn;
             this.paused = false;
@@ -50,7 +50,7 @@ namespace Glasscubes.Drive
                         select d;
             if (item.Count() == 0)
             {
-                Console.Error.Write("No matching Diskitem when deleteing ?", e.FullPath);
+                Console.Error.Write("No matching Diskitem when deleting ?", e.FullPath);
                 return;
             }
 

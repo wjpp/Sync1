@@ -24,7 +24,7 @@ namespace Glasscubes.Drive
         static System.Threading.Timer timer;
         static DBHelper dbHelper;
         static DownloadMonitor downloadMonitor;
-        static Monitor upMonitor;
+        static DiskMonitor diskMonitor;
 
         [STAThread]
         static void Main(string[] args)
@@ -36,7 +36,7 @@ namespace Glasscubes.Drive
             downloadMonitor.rootDir =  "C:\\test";
             timer = new System.Threading.Timer(DownloadCheck, null, 4000, Timeout.Infinite);
 
-            upMonitor = new Monitor(downloadMonitor.rootDir, dbHelper.db);
+            diskMonitor = new DiskMonitor(downloadMonitor.rootDir, dbHelper.db);
             
 
             Application.EnableVisualStyles();
@@ -61,9 +61,9 @@ namespace Glasscubes.Drive
 
         private static void DownloadCheck(object state)
         {
-            upMonitor.paused = true;
+            diskMonitor.paused = true;
             downloadMonitor.Monitor();
-            upMonitor.paused = false;
+            diskMonitor.paused = false;
             timer.Change(4000, Timeout.Infinite);
         }
 
