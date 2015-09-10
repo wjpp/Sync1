@@ -15,28 +15,28 @@ using SQLite;
 
 using Glasscubes.Drive.Model;
 using Glasscubes.Drive.UI;
-
-
+using Glasscubes.Drive.Util;
 
 namespace Glasscubes.Drive
 {
     class SyncMain
     {
         static System.Threading.Timer timer;
+        static DBHelper dbHelper;
         static DownloadMonitor downloadMonitor;
-        static Monitor mon;
+        static Monitor upMonitor;
 
         [STAThread]
         static void Main(string[] args)
         {
-            // SyncMain p = new SyncMain();
-            // p.Start();
 
-            downloadMonitor = new DownloadMonitor();
+            dbHelper = new DBHelper();
+
+            downloadMonitor = new DownloadMonitor(dbHelper.db);
             downloadMonitor.rootDir =  "C:\\test";
             timer = new System.Threading.Timer(DownloadCheck, null, 4000, Timeout.Infinite);
 
-            mon = new Monitor(downloadMonitor.rootDir);
+            upMonitor = new Monitor(downloadMonitor.rootDir, dbHelper.db);
             
 
             Application.EnableVisualStyles();
@@ -61,7 +61,9 @@ namespace Glasscubes.Drive
 
         private static void DownloadCheck(object state)
         {
+            upMonitor.paused = true;
             downloadMonitor.Monitor();
+            upMonitor.paused = false;
             timer.Change(4000, Timeout.Infinite);
         }
 

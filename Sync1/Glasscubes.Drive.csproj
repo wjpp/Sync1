@@ -132,6 +132,7 @@
   <ItemGroup>
     <Compile Include="DownloadMonitor.cs" />
     <Compile Include="Model\DiskItem.cs" />
+    <Compile Include="Model\GCAction.cs" />
     <Compile Include="Model\Globals.cs" />
     <Compile Include="Monitor.cs" />
     <Compile Include="SyncMain.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="UI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Util\DBHelper.cs" />
     <Compile Include="Util\FileWatcherHelper.cs" />
     <Compile Include="Util\MyFileSystemWatcher.cs">
       <SubType>Component</SubType>
@@ -162,6 +164,7 @@
     <Content Include="SQLite\sqlite3.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">

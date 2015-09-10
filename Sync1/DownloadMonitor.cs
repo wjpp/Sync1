@@ -21,18 +21,19 @@ namespace Glasscubes.Drive
     {
 
         private RestClient client = new RestClient();
-        const string key = "a06055a0-7605-4aee-9048-981aa6ef41a0";
-        const string apiId = "11111";
+        //glasscubes://auth-callback=3271f319-911b-4217-b696-897517643535&accountId=54036&apiId=222&accountName=wp2
+        const string key = "3271f319-911b-4217-b696-897517643535";
+        const string apiId = "222";
         public string rootDir { get; set; } 
         const string server = "http://home.glasscubesdev.com:8080/";
-        const string dbName = "sync3.db";
+       
         private SQLiteConnection db;
     
 
-        public DownloadMonitor()
+        public DownloadMonitor(SQLiteConnection dbIn)
         {
             client.BaseUrl = new Uri(server);
-            DbConnect(dbName);
+            db = dbIn;
             
         }
 
@@ -153,29 +154,12 @@ namespace Glasscubes.Drive
 
         private void Init()
         {
-            SetupDB(dbName);
+            
             GetWorkspaces();
             GetInitFiles();
         }
 
-        private void SetupDB(string databaseName)
-        {
-
-            db.DropTable<Workspace>();
-            db.DropTable<DiskItem>();
-            db.DropTable<Globals>();
-
-            db.CreateTable<Workspace>();
-            db.CreateTable<DiskItem>();
-            db.CreateTable<Globals>();
-
-        }
-
-        private void DbConnect(string databaseName)
-        {
-            string folder = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            db = new SQLiteConnection(System.IO.Path.Combine(folder, databaseName));
-        }
+        
 
         private void GetInitFiles()
         {
@@ -254,16 +238,23 @@ namespace Glasscubes.Drive
                         fullpath = Path.Combine(path, name);
                         conflict = false;
                         f.FileName = name;
-                        db.Update(f); // save new name
                     }
                 }
             }
 
+            f.Path = fullpath;
+            db.Update(f);
 
             using (var client = new WebClient())
             {
                 string url = server + "rest/sync/get?key=" + key + "&apiId=" + apiId + "&docId=" + f.Id;
-                client.DownloadFile(url, fullpath);
+                try {
+                    client.DownloadFile(url, fullpath);
+                }catch(WebException e)
+                {
+                    Console.Error.Write("Problem connecting to Glasscubes");
+                    Console.Error.Write(e);
+                }
             }
         }
 
