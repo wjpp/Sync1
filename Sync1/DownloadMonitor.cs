@@ -23,7 +23,7 @@ namespace Glasscubes.Drive
         private RestClient client = new RestClient();
         const string key = "a06055a0-7605-4aee-9048-981aa6ef41a0";
         const string apiId = "11111";
-        const string rootDir = "C:\\test";
+        public string rootDir { get; set; } 
         const string server = "http://home.glasscubesdev.com:8080/";
         const string dbName = "sync3.db";
         private SQLiteConnection db;
@@ -33,7 +33,10 @@ namespace Glasscubes.Drive
         {
             client.BaseUrl = new Uri(server);
             DbConnect(dbName);
+            
         }
+
+ 
 
         public void Monitor()
         {

@@ -24,6 +24,7 @@ namespace Glasscubes.Drive
     {
         static System.Threading.Timer timer;
         static DownloadMonitor downloadMonitor;
+        static Monitor mon;
 
         [STAThread]
         static void Main(string[] args)
@@ -32,8 +33,11 @@ namespace Glasscubes.Drive
             // p.Start();
 
             downloadMonitor = new DownloadMonitor();
+            downloadMonitor.rootDir =  "C:\\test";
             timer = new System.Threading.Timer(DownloadCheck, null, 4000, Timeout.Infinite);
 
+            mon = new Monitor(downloadMonitor.rootDir);
+            
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
