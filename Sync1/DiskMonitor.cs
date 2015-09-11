@@ -44,20 +44,11 @@ namespace Glasscubes.Drive
             if (paused) return;
             Console.WriteLine("Deleted: FileName - {0}, ChangeType - {1}", e.Name, e.ChangeType);
             
-            // find DiskItem
-            var item = from d in db.Table<DiskItem>()
-                        where d.Path.Equals(e.FullPath)
-                        select d;
-            if (item.Count() == 0)
-            {
-                Console.Error.Write("No matching Diskitem when deleting ?", e.FullPath);
-                return;
-            }
+           
 
             GCAction a = new GCAction();
             a.Action = GCAction.DELETED;
             a.Path = e.FullPath;
-            a.DiskItemId = item.FirstOrDefault().Id;
             db.Insert(a);
 
         }
@@ -73,7 +64,7 @@ namespace Glasscubes.Drive
             if (paused) return;
             Console.WriteLine("Created: FileName - {0}, ChangeType - {1}", e.Name, e.ChangeType);
 
-            // lets now worry about moves just yet
+            // lets not worry about moves just yet
 
             GCAction a = new GCAction();
             a.Action = GCAction.NEW;

@@ -23,14 +23,14 @@ namespace Glasscubes.Drive
 
         
         public string rootDir { get; set; } 
-        const string server = "http://home.glasscubesdev.com:8080/";
+       
        
         private SQLiteConnection db;
     
 
         public DownloadMonitor(SQLiteConnection dbIn)
         {
-            client.BaseUrl = new Uri(server);
+           
             db = dbIn;
             
         }
@@ -62,9 +62,24 @@ namespace Glasscubes.Drive
 
         private void CheckForChanges()
         {
-            var global = db.Find<Globals>(1);
-            var request = new RestRequest();
-            request.Resource = "/rest/sync/changes";
+            Globals global = null;
+            try
+            {
+                global = db.Find<Globals>(1);
+            }
+            catch (SQLiteException e)
+            {
+            }
+            if (global == null)
+            {
+                // this mean there was no files downloaded (as there is none on the account)
+                global = new Globals();
+                global.Id = 1;
+                global.CurrentRevision = 0;
+                db.Insert(global);
+            }
+            var request = newReq("/rest/sync/changes");
+            
             SetUpRequest(request);
             request.AddParameter("rev", global.CurrentRevision);
 
@@ -162,8 +177,8 @@ namespace Glasscubes.Drive
         private void GetInitFiles()
         {
             // curl "http://localhost:8080/rest/sync/changes?key=a06055a0-7605-4aee-9048-981aa6ef41a0&apiId=11111&rev=0"
-            var request = new RestRequest();
-            request.Resource = "/rest/sync/changes";
+            var request = newReq("/rest/sync/changes");
+           
             SetUpRequest(request);
             request.AddParameter("rev", 0);
 
@@ -191,7 +206,7 @@ namespace Glasscubes.Drive
 
                 foreach (var item in toplevel)
                 {
-                    Workspace w = workspaces[item.WorkspaceId];
+                    Workspace w = workspaces[(int)item.WorkspaceId];
                     string path = Path.Combine(rootDir, w.Name, item.FileName);
                     System.IO.Directory.CreateDirectory(path);
                     item.Path = path;
@@ -292,8 +307,8 @@ namespace Glasscubes.Drive
         protected void GetWorkspaces()
         {
             //  curl    "http://localhost:8080/rest/sync/workspaces?key=a06055a0-7605-4aee-9048-981aa6ef41a0&apiId=11111"                                                                                                                             
-            var request = new RestRequest();
-            request.Resource = "/rest/sync/workspaces";
+            var request = newReq("/rest/sync/workspaces");
+     
             SetUpRequest(request);
 
             var response = client.Execute<List<Workspace>>(request);
@@ -303,6 +318,7 @@ namespace Glasscubes.Drive
                 foreach (Workspace w in items)
                 {
                     System.IO.Directory.CreateDirectory(rootDir + "\\" + w.Name);
+                    w.Path = rootDir + "\\" + w.Name;
                     db.Insert(w);
                 }
             }
@@ -316,8 +332,7 @@ namespace Glasscubes.Drive
             //curl "http://localhost:8080/rest/sync/list?apiId=12345&key=3b0193dd-ebed-44e1-b30c-ba6430c15e78&workspaceId=115317"
 
 
-            var request = new RestRequest();
-            request.Resource = "/rest/sync/list";
+            var request = newReq("/rest/sync/list");
 
             SetUpRequest(request);
             request.AddParameter("workspaceId", workspaceId);

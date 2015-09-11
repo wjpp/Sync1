@@ -1,3 +1,4 @@
 ﻿What happens if after get the setup list of files we cannot download the files or loose connection?
 Clean up dbconnection and filesystemwatcher correctly
 Find better way to pause upMonitor
+What to do if no folder when NEW item in disk - ie out of sync

@@ -52,6 +52,8 @@ namespace Glasscubes.Drive.Util
             db.CreateTable<Globals>();
             db.CreateTable<GCAction>();
 
+           
+
         }
 
         private void DbConnect(string databaseName)

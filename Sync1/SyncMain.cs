@@ -21,10 +21,13 @@ namespace Glasscubes.Drive
 {
     class SyncMain
     {
-        static System.Threading.Timer timer;
+        static System.Threading.Timer downloadTimer;
+        static System.Threading.Timer consumerTimer;
+
         static DBHelper dbHelper;
         static DownloadMonitor downloadMonitor;
         static DiskMonitor diskMonitor;
+        static GCActionConsumer consumer;
 
         [STAThread]
         static void Main(string[] args)
@@ -34,10 +37,12 @@ namespace Glasscubes.Drive
 
             downloadMonitor = new DownloadMonitor(dbHelper.db);
             downloadMonitor.rootDir =  "C:\\test";
-            timer = new System.Threading.Timer(DownloadCheck, null, 4000, Timeout.Infinite);
+            downloadTimer = new System.Threading.Timer(DownloadCheck, null, 4000, Timeout.Infinite);
+            consumerTimer = new System.Threading.Timer(ConsumerProcess, null, 4000, Timeout.Infinite);
 
             diskMonitor = new DiskMonitor(downloadMonitor.rootDir, dbHelper.db);
-            
+            consumer = new GCActionConsumer(dbHelper.db);
+
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -64,9 +69,14 @@ namespace Glasscubes.Drive
             diskMonitor.paused = true;
             downloadMonitor.Monitor();
             diskMonitor.paused = false;
-            timer.Change(4000, Timeout.Infinite);
+            downloadTimer.Change(4000, Timeout.Infinite);
         }
 
+        private static void ConsumerProcess(object state)
+        {
+            consumer.Process();
+            consumerTimer.Change(4000, Timeout.Infinite);
+        }
 
     }
 }
