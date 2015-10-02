@@ -96,25 +96,63 @@ namespace Glasscubes.Drive
 
                     foreach (DiskItem i in items)
                     {
-                        switch (i.Action)
+                        if (DoesThisNeedUpdating(i))
                         {
-                            case "ADD":
-                                NewFileAdded(i);
-                                break;
-                            case "DELETE":
-                                DeleteDiskItem(i);
-                                break;
-                            case "UPDATED":
-                                UpdateDiskItem(i);
-                                break;
-                            case "RENAME":
-                                DiskItemRenamed(i);
-                                break;
+                            switch (i.Action)
+                            {
+                                case "ADD":
+                                    NewFileAdded(i, null);
+                                    break;
+                                case "DELETE":
+                                    DeleteDiskItem(i);
+                                    break;
+                                case "UPDATED":
+                                    UpdateDiskItem(i);
+                                    break;
+                                case "RENAME":
+                                    DiskItemRenamed(i);
+                                    break;
+                            }
                         }
                     }
                 }
 
             }
+        }
+
+        private bool DoesThisNeedUpdating(DiskItem i)
+        {
+            DiskItem di = db.Find<DiskItem>(i.Id);
+            if (di == null)
+            {
+                return true;
+            }
+
+            switch (i.Action)
+            {
+                case "ADD":
+                    return false;
+                case "DELETE":
+                    return true;
+                case "UPDATED":
+                    if (di.Updated != i.Updated ||
+                      di.FileName != i.FileName ||
+                      di.Version != i.Version || 
+                      di.Size != i.Size)
+                    {
+                        return true;
+                    }
+                    return false;
+                case "RENAME":
+                    if (di.FileName != i.FileName)
+                    {
+                        return true;
+                    }
+                    return false;
+            }
+
+
+            return true;
         }
 
         private void DiskItemRenamed(DiskItem i)
@@ -124,6 +162,13 @@ namespace Glasscubes.Drive
                 DiskItem orig = db.Find<DiskItem>(i.Id);
                 string root = GetRootPath(orig);
                 File.Move(Path.Combine(root, orig.FileName), Path.Combine(root, i.FileName));
+                i.Path = Path.Combine(root, i.FileName).ToString();
+               
+                DateTime now = DateTime.Now;
+                i.Updated = now;
+                Directory.SetLastWriteTime(i.Path, now);
+                i.UpdatedOnDiskUTC = File.GetLastWriteTimeUtc(i.Path);
+         
                 db.Update(i);
             }
             catch (SQLiteException e)
@@ -136,21 +181,41 @@ namespace Glasscubes.Drive
         {
             DiskItem original = db.Find<DiskItem>(i.Id);
             DeleteDiskItem(original);
-            NewFileAdded(i);
+            NewFileAdded(i, original);
         }
 
-        private void NewFileAdded(DiskItem i)
+        private void NewFileAdded(DiskItem i, DiskItem original)
         {
+            i.Updated = DateTime.Now;
             if (i.Folder)
             {
                 string newPath = Path.Combine(GetRootPath(i), i.FileName);
                 System.IO.Directory.CreateDirectory(newPath);
                 i.Path = newPath;
-                db.Insert(i);
+                i.CreatedOnDiskUTC = Directory.GetCreationTimeUtc(newPath);
+                i.UpdatedOnDiskUTC = Directory.GetLastAccessTimeUtc(newPath);
+                if (original != null)
+                {
+                    original.Path = newPath;
+                    original.UpdatedOnDiskUTC = Directory.GetLastWriteTimeUtc(newPath);
+                    db.Update(original);
+                }
+                else
+                { 
+                    db.Insert(i);
+                }
             }
             else
             {
-                db.Insert(i);
+                if (original != null)
+                {
+              //      original.UpdatedOnDiskUTC = File.GetLastWriteTimeUtc(newPath);
+              //      db.Update(original);
+                }
+                else
+                {
+                    db.Insert(i);
+                }
                 DownLoadFile(i);
             }
         }
@@ -161,7 +226,7 @@ namespace Glasscubes.Drive
             var path = Path.Combine(GetRootPath(i), i.FileName);
             if (File.Exists(path))
             {
-                File.Delete(path);
+                File.Delete(path); //TODO does this work for FOLDers?
             }
         }
 
@@ -210,6 +275,8 @@ namespace Glasscubes.Drive
                     string path = Path.Combine(rootDir, w.Name, item.FileName);
                     System.IO.Directory.CreateDirectory(path);
                     item.Path = path;
+                    item.UpdatedOnDiskUTC = Directory.GetLastWriteTimeUtc(path);
+                    item.CreatedOnDiskUTC = Directory.GetCreationTimeUtc(path);
                     db.Update(item);
 
                     createChildFolders(item, path);
@@ -256,6 +323,7 @@ namespace Glasscubes.Drive
             }
 
             f.Path = fullpath;
+           
             db.Update(f);
 
             using (var client = new WebClient())
@@ -263,7 +331,14 @@ namespace Glasscubes.Drive
                 string url = server + "rest/sync/get?key=" + key + "&apiId=" + apiId + "&docId=" + f.Id;
                 try {
                     client.DownloadFile(url, fullpath);
-                }catch(WebException e)
+                    var length = new System.IO.FileInfo(fullpath).Length;
+                    f.Size = length;
+                    f.Updated = DateTime.Now;
+                    f.UpdatedOnDiskUTC = File.GetLastWriteTimeUtc(fullpath);
+                    f.CreatedOnDiskUTC = File.GetCreationTimeUtc(fullpath);
+                    db.Update(f);
+                }
+                catch(WebException e)
                 {
                     Console.Error.Write("Problem connecting to Glasscubes");
                     Console.Error.Write(e);
@@ -296,6 +371,9 @@ namespace Glasscubes.Drive
                 string newPath = Path.Combine(path, f.FileName);
                 System.IO.Directory.CreateDirectory(newPath);
                 f.Path = newPath;
+                f.Updated = DateTime.Now;
+                f.UpdatedOnDiskUTC = Directory.GetLastWriteTimeUtc(newPath);
+                f.CreatedOnDiskUTC = Directory.GetCreationTimeUtc(newPath);
                 db.Update(f);
 
                 createChildFolders(f, newPath);
@@ -319,6 +397,7 @@ namespace Glasscubes.Drive
                 {
                     System.IO.Directory.CreateDirectory(rootDir + "\\" + w.Name);
                     w.Path = rootDir + "\\" + w.Name;
+                
                     db.Insert(w);
                 }
             }

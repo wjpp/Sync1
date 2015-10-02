@@ -32,7 +32,7 @@ namespace Glasscubes.Drive
         [STAThread]
         static void Main(string[] args)
         {
-
+            ConnectsToGC.Setup();
             dbHelper = new DBHelper();
 
             downloadMonitor = new DownloadMonitor(dbHelper.db);
@@ -66,9 +66,7 @@ namespace Glasscubes.Drive
 
         private static void DownloadCheck(object state)
         {
-            diskMonitor.paused = true;
             downloadMonitor.Monitor();
-            diskMonitor.paused = false;
             downloadTimer.Change(4000, Timeout.Infinite);
         }
 

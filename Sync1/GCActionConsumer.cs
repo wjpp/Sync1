@@ -14,6 +14,7 @@ namespace Glasscubes.Drive
 {
     class GCActionConsumer : ConnectsToGC
     {
+        const int FUZZY_TIMESTAMP_DIFF_MS = 2000; 
         private SQLiteConnection db;
 
         public GCActionConsumer(SQLiteConnection db)
@@ -79,6 +80,12 @@ namespace Glasscubes.Drive
         }
         private void DoNew(GCAction action)
         {
+
+            if (ThisIsFromMe(action))
+            {
+                return;
+            }
+
             var request = newReq("/rest/sync/new", Method.POST);
             SetUpRequest(request);
             request.AddHeader("Content-Type", "multipart/form-data");
@@ -151,5 +158,56 @@ namespace Glasscubes.Drive
 
         }
 
+        private bool ThisIsFromMe(GCAction action)
+        {
+            var rs = from d in db.Table<DiskItem>()
+                     where d.Path.Equals(action.Path)
+                     select d;
+            if (rs.Count() != 0)
+            {
+                DiskItem di = rs.FirstOrDefault<DiskItem>();
+                // Test to see if its the same file/folder or a different version
+                FileInfo fi = new FileInfo(action.Path);
+                if (di.Folder)
+                {
+                    // fuzzy timecheck
+                    TimeSpan span = fi.LastAccessTimeUtc - di.UpdatedOnDiskUTC;
+                    if (span.TotalMilliseconds < FUZZY_TIMESTAMP_DIFF_MS)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                   
+                    var length = fi.Length;
+                    if (di.Size == length)
+                    {
+                        // fuzzy timecheck
+                        TimeSpan span = fi.LastAccessTimeUtc - di.UpdatedOnDiskUTC;
+                        if (span.Milliseconds < FUZZY_TIMESTAMP_DIFF_MS)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            // might be a workspace
+            var rsw = from d in db.Table<Workspace>()
+                     where d.Path.Equals(action.Path)
+                     select d;
+            if (rsw.Count() != 0)
+            {
+                Workspace w = rsw.FirstOrDefault<Workspace>();
+                if (action.Path == w.Path)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
+
