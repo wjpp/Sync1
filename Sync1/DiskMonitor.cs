@@ -37,6 +37,12 @@ namespace Glasscubes.Drive
         {
             if (paused) return;
             Console.WriteLine("Renamed: FileName - {0}, ChangeType - {1}, Old FileName - {2}", e.Name, e.ChangeType, e.OldName);
+
+            GCAction a = new GCAction();
+            a.Action = GCAction.RENAMED;
+            a.Path = e.FullPath;
+            db.Insert(a);
+
         }
 
         void fsw_Deleted(object sender, System.IO.FileSystemEventArgs e)
@@ -57,6 +63,12 @@ namespace Glasscubes.Drive
         {
             if (paused) return;
             Console.WriteLine("Changed: FileName - {0}, ChangeType - {1}", e.Name, e.ChangeType);
+
+
+            GCAction a = new GCAction();
+            a.Action = GCAction.CHANGED;
+            a.Path = e.FullPath;
+            db.Insert(a);
         }
 
         void fsw_Created(object sender, System.IO.FileSystemEventArgs e)

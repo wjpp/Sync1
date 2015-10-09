@@ -42,7 +42,7 @@ namespace Glasscubes.Drive
 
             diskMonitor = new DiskMonitor(downloadMonitor.rootDir, dbHelper.db);
             consumer = new GCActionConsumer(dbHelper.db);
-
+            consumer.rootDir = downloadMonitor.rootDir;
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
