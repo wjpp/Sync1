@@ -20,5 +20,6 @@ namespace Glasscubes.Drive.Model
         public int DiskItemId { get; set; }
         public string Action { get; set; }
         public string Path { get; set; }
+        public string OldPath { get; set; }
     }
 }

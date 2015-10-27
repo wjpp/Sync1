@@ -55,7 +55,13 @@ namespace Glasscubes.Drive
         private void DoRenamed(GCAction action)
         {
             //Does it still exist?
-            if (!FileOrDirectoryExists(action.Path)) return; 
+            if (!FileOrDirectoryExists(action.Path)) return;
+
+
+            if (ThisIsFromMe(action))
+            {
+                return;
+            }
 
             Object o = FindDiskItem(action);
             // We should already have this file in DB unless its a new folder thats just got renamed
@@ -68,8 +74,42 @@ namespace Glasscubes.Drive
                 return;
             }
 
-           
+            //        @GET
+            // @Path("/rename")
+            // @Produces(MediaType.APPLICATION_JSON)
+            // @Transactional
+            //public FileMetaUpdate rename(
+            //        @QueryParam("apiId") String apiId,
+            //        @QueryParam("key") String key,
+            //        @QueryParam("docId") Long docId,
+            //        @QueryParam("filename") String fileName,
+            //        @QueryParam("folder") Boolean isFolder) {
 
+            if (o is DiskItem)
+            {
+                DiskItem item = (DiskItem)o;
+                var request = newReq("/rest/sync/rename");
+
+                SetUpRequest(request);
+                request.AddParameter("docId", item.Id);
+                request.AddParameter("folder", item.Folder);
+                request.AddParameter("filename", Path.GetFileName(action.Path));
+
+                var response = client.Execute<NewFileMeta>(request);
+                if (response.ResponseStatus == ResponseStatus.Completed)
+                {
+                    NewFileMeta meta = response.Data;
+                    if (meta.success)
+                    {
+                        // what do if anything?
+                        return;
+                    }
+                }
+                Console.Error.Write("Could not rename file ? ", action.Path);
+            }
+
+            // we do nothing if workspace
+            Console.Error.Write("Workspace NOT being renamed ? ", action.Path);
         }
 
         private void DoChanged(GCAction action)
@@ -77,6 +117,11 @@ namespace Glasscubes.Drive
 
             //Does it still exist?
             if (!FileOrDirectoryExists(action.Path)) return; // can happen when creating a new folder that immediately gets a different name
+
+            if (ThisIsFromMe(action))
+            {
+                return;
+            }
 
 
             // We should already have this file in DB if not then it could be a new folder thats being renamed (it fires a change event as well)
@@ -90,13 +135,13 @@ namespace Glasscubes.Drive
                 // anything changed? (it may be a parent folder)
                 if (item.Folder)
                 {
+                    return;
+                } 
 
-                } else
-                {
 
-                }
             }
 
+            // we don't do anything for workspaces
         }
 
         private void doDelete(GCAction action)
@@ -203,7 +248,7 @@ namespace Glasscubes.Drive
                     i.FileName = Path.GetFileName(action.Path);
                     i.Action = "ADD";
                     i.Created = meta.created;
-                    i.Path = action.Path;
+                    i.Path = Path.GetFileName(action.Path);
                     if (!i.Folder)
                     {
                         FileInfo info = new FileInfo(action.Path);
@@ -216,6 +261,8 @@ namespace Glasscubes.Drive
 
         }
 
+        
+        // We need to check if this GCAction event has occured from a user or from the DownloadMinitor (me) i.e. event arising from files being downloaded/deleted/rename etc on Glasscubes
         private bool ThisIsFromMe(GCAction action)
         {
 
@@ -263,9 +310,19 @@ namespace Glasscubes.Drive
 
         private Object FindDiskItem(GCAction action)
         {
-            string[] directories = action.Path.Split(Path.DirectorySeparatorChar);
+            string path;
+            if (action.Action == GCAction.RENAMED)
+            {
+                path = action.OldPath;
+            }
+            else
+            {
+                path = action.Path;
+            }
 
-            string path = "";
+            string[] directories = path.Split(Path.DirectorySeparatorChar);
+
+            path = "";
             Workspace workspace = null;
             DiskItem item = null;
             bool matchRoot = true;

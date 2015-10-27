@@ -13,11 +13,18 @@ namespace Glasscubes.Drive.Util
     class ConnectsToGC
     {
         protected RestClient client = new RestClient();
-        //glasscubes://auth-callback=3271f319-911b-4217-b696-897517643535&accountId=54036&apiId=222&accountName=wp2
-        protected static string key = "3271f319-911b-4217-b696-897517643535";
-        protected const string apiId = "222";
-        protected const string server = "http://home.glasscubesdev.com:8080/";
+      
+
+        //Using account https://wp2.glasscubes.com/auth?appId=dc&apiId=10001
+        // wayne.p@glasscubes.com / test
+        //glasscubes://auth-callback=50926ddc-ef9c-4bda-a800-32984305370e&accountId=54366&apiId=10001&accountName=wp2
+
+        protected static string key = "50926ddc-ef9c-4bda-a800-32984305370e";
+        protected const string apiId = "10001";
+        protected const string server = "https://wp2.glasscubes.com/";
         protected const string appId = "gcdrive";
+        protected const string email = "synctest@test.com";
+        protected const string password = "test";
 
         static public void Setup()
         {
@@ -26,13 +33,15 @@ namespace Glasscubes.Drive.Util
             var request = newReq("/rest/sync/login");
             request.AddParameter("apiId", apiId);
             request.AddParameter("appId", appId);
-            request.AddParameter("email", "test1@test.com");
-            string hash = CreateMD5("test");
+            request.AddParameter("email", email);
+            string hash = CreateMD5(password);
             request.AddParameter("pw", hash);
 
             var response = client.Execute<LoginInfo>(request);
             if (response.ResponseStatus == ResponseStatus.Completed)
             {
+                //TO DO support multiple companies for same email
+
                 LoginInfo info = response.Data;
                 key = info.User.ApiKey;
 

@@ -41,6 +41,7 @@ namespace Glasscubes.Drive
             GCAction a = new GCAction();
             a.Action = GCAction.RENAMED;
             a.Path = e.FullPath;
+            a.OldPath = e.OldFullPath;
             db.Insert(a);
 
         }
